@@ -1,8 +1,12 @@
 """
 Generalized version of Flux's Dense layer.
+
     GenDense(in=>out, σ=identity; ω = identity, ψ = *, init = glorot_uniform, bias=true, γ=Flux.Zeros()
+
 Can also be initialized with an additional set of trainable weights asym
+
     GenDense(in=>out, in_asym=>out_asym, σ = identity; ω = identity, ψ = *, init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros())
+
     """
     struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
     weight::M1
