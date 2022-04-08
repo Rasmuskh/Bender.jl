@@ -1,6 +1,3 @@
-using ChainRulesCore; 
-using ChainRulesCore: NoTangent, @thunk
-
 """
 Compute negative squared euclidean distance D between the rows of matrix W and the columns of matrix X.
 Denoting the rows of W by index i and the columns of X by index j the elements of the output matrix is given by:
