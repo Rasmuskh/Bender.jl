@@ -3,9 +3,6 @@ using Flux
 using Flux: @functor, glorot_uniform, convfilter, calc_padding, expand, create_bias, Zeros
 using NNlib: ∇conv_data, ∇conv_filter
 using Zygote: pullback
-import NNlib: conv
-# import Base: *
-
 
 include("layers.jl")
 export GenDense, GenConv
