@@ -1,5 +1,10 @@
-"""Generalized version of Flux's Dense layer"""
-struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
+"""
+Generalized version of Flux's Dense layer.
+    GenDense(in=>out, σ=identity; ω = identity, ψ = *, init = glorot_uniform, bias=true, γ=Flux.Zeros()
+Can also be initialized with an additional set of trainable weights asym
+    GenDense(in=>out, in_asym=>out_asym, σ = identity; ω = identity, ψ = *, init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros())
+    """
+    struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
     weight::M1
     weight_asym::M2 
     bias::B1
@@ -13,8 +18,8 @@ struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
     end
 end
 
-function GenDense(in::Integer, out::Integer, σ = identity; 
-    ω = identity, ψ = *, init = glorot_uniform, bias=true, bias_asym=false, γ=Flux.Zeros())
+function GenDense((in, out)::Pair{<:Integer, <:Integer}, σ = identity; 
+    ω = identity, ψ = *, init = glorot_uniform, bias=true, γ=Flux.Zeros())
 
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
@@ -25,7 +30,8 @@ function GenDense(in::Integer, out::Integer, σ = identity;
     return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, ω, ψ)
 end
 
-function GenDense(in::Integer, out::Integer, in_asym::Integer, out_asym::Integer, σ = identity; 
+function GenDense((in, out)::Pair{<:Integer, <:Integer}, 
+    (in_asym, out_asym)::Pair{<:Integer, <:Integer}, σ = identity; 
     ω = identity, ψ = *, init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros())
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
@@ -48,7 +54,7 @@ end
 
 function Base.show(io::IO, l::GenDense)
     print(io, "GenDense(size(weight)=", size(l.weight))
-    l.weight_asym isa AbstractArray && print(io, ", size(weight_fb)=", size(l.weight_asym))
+    l.weight_asym isa AbstractArray && print(io, ", size(weight_asym)=", size(l.weight_asym))
     l.σ == identity || print(io, ", σ=", l.σ)
     l.ω == identity || print(io, ", ω=", l.ω)
     l.ψ == (*) || print(io, ", ψ=", l.ψ)
