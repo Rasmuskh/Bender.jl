@@ -2,7 +2,7 @@ module RogueLearning
 using Flux
 using Flux: @functor, glorot_uniform, convfilter, calc_padding, expand, create_bias, Zeros
 using NNlib: ∇conv_data, ∇conv_filter
-using Zygote: pullback, @adjoint
+using Zygote: pullback, @adjoint, broadcasted, Numeric, _pullback
 using ChainRulesCore; 
 using ChainRulesCore: NoTangent, @thunk
 
