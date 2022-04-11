@@ -6,7 +6,7 @@ Dᵢⱼ = -||Wᵢ﹕ - X﹕ⱼ||² = 2Wᵢ﹕X﹕,j - ||Wᵢ﹕||^2 - ||X﹕ⱼ|
 function radialSim(W, X)
     x2 = sum(abs2, X, dims=1) # sum the elements of each column
     W2 = sum(abs2, W, dims=2) # sum the elements of each row
-    D = 2*matmul(W,X) .- W2 .- x2
+    D = 2*matmul(W, X) .- W2 .- x2
     return D
 end
 
@@ -15,9 +15,27 @@ In the forward pass this function behaves just like radialSim, but in the backwa
 """
 function radialSim_asym(W, X, B)
     x2 = sum(abs2, X, dims=1) # sum the elements of each column
-    W2 = sum(abs2, W, dims=2) # sum the elements of each row
-    D = 2*matmul(W,X,B) .- W2 .- x2
+    W2 = L2columnSum_asym(W, B) # sum the elements of each row
+    D = 2*matmul_asym_∂x(W,X,B) .- W2 .- x2
     return D
+end
+
+function L2columnSum_asym(W, B)
+    return sum(abs2, W, dims=2)
+end
+
+function ChainRulesCore.rrule(::typeof(L2columnSum_asym), W::AbstractMatrix, B::AbstractMatrix)
+    s = sum(abs2, W, dims=2)
+    function sum_pullback(ΔΩ)
+        println("B: ", size(B'))
+        println("ΔΩ: ", size(ΔΩ))
+        ∂W = @thunk(2*B' .* ΔΩ)
+
+        println("∂W: ", size(unthunk(∂W)))
+        return (NoTangent(), ∂W, NoTangent())
+    end
+    println("s: ", size(s))
+    return s, sum_pullback
 end
 
 # Todo: cosine similarity and projection rejection similarity functions
