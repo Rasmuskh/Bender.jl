@@ -1,4 +1,4 @@
-# RogueLearning.jl
+# Bender.jl
 
 ## Layers
 ```@docs

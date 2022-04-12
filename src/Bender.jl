@@ -1,4 +1,4 @@
-module RogueLearning
+module Bender
 using Flux
 using Flux: @functor, glorot_uniform, convfilter, calc_padding, expand, create_bias, Zeros
 using NNlib: ∇conv_data, ∇conv_filter

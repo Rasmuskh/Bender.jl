@@ -1,5 +1,5 @@
 
 ## Index
 ```@index
-Modules = [RogueLearning]
+Modules = [Bender]
 ```

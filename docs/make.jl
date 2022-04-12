@@ -1,5 +1,5 @@
 push!(LOAD_PATH,"../src/")
-using RogueLearning
+using Bender
 using Documenter
 
 Home = "Home" => "index.md"
@@ -11,12 +11,12 @@ PAGES = [
     ]
 
 makedocs(
-         sitename = "RogueLearning.jl",
-         modules  = [RogueLearning],
+         sitename = "Bender.jl",
+         modules  = [Bender],
          pages=PAGES
          )
 	deploydocs(;
-	    repo="github.com/Rasmuskh/RogueLearning.jl",
+	    repo="github.com/Rasmuskh/Bender.jl",
 )
 
 
