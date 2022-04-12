@@ -40,3 +40,6 @@ direct_feedback_loss
 ```
 
 ## Activation functions
+```@docs
+sign_STE
+```
