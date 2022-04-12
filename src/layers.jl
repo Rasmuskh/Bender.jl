@@ -10,7 +10,22 @@ Can also be initialized with an additional set of trainable weights
     GenDense(in=>out, in_asym=>out_asym, σ = identity; 
              ω = identity, ψ = *, init = glorot_uniform, 
              bias=true, bias_asym=true, γ=Flux.Zeros())
-    """
+
+To implement Feedback alignment you need to specify the similarity function `ψ=matmul_asym_∂x`.
+```
+julia> using Flux, Bender
+julia> GenDense(20=>10, 10=>20, relu; ψ=matmul_asym_∂x) 
+GenDense(size(weight)=(10, 20), size(weight_asym)=(20, 10), σ=relu, ψ=matmul_asym_∂x)
+```
+To implement a layer with binary {-1,1} weights and neurons, which uses a deterministic 
+straight-through estimator in the backwards pass you need to specify an activation function
+for both the weights and neurons.
+```
+julia> using, Bender
+julia> GenDense(20=>10, sign_STE; ω=sign_STE)
+GenDense(size(weight)=(10, 20), σ=sign_STE, ω=sign_STE)
+```
+"""
     struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
     weight::M1
     weight_asym::M2 
