@@ -14,7 +14,8 @@ Can also be initialized with an additional set of trainable weights
 To implement Feedback alignment you need to specify the similarity function `ψ=matmul_asym_∂x`.
 ```
 julia> using Flux, Bender
-julia> GenDense(20=>10, 10=>20, relu; ψ=matmul_asym_∂x) 
+julia> GenDense(20=>10, 10=>20, relu; ψ=matmul_asym_∂x)
+julia> (a::GenDense)(x::AbstractVecOrMat) = a.σ.(a.ψ(a.ω.(a.weight), x, a.weight_asym) .+ a.bias) # redefine forward pass to also take weight_asym as input
 GenDense(size(weight)=(10, 20), size(weight_asym)=(20, 10), σ=relu, ψ=matmul_asym_∂x)
 ```
 To implement a layer with binary {-1,1} weights and neurons, which uses a deterministic 
