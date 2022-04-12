@@ -8,4 +8,4 @@ A wide range of research on feedforward neural networks requires "bending" the c
 
 This package is not yet officially released so use at your own risk. Documentation and tests are work in progress, and API might change slightly before official release.
 
-To install: enter package manager mode by typing ']' in a Julia REPL. Then type add https://github.com/Rasmuskh/Bender.jl.git
+To install: enter package manager mode by typing `]` in a Julia REPL. Then type `add https://github.com/Rasmuskh/Bender.jl.git`.
