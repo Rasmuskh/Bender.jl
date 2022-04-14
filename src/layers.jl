@@ -55,12 +55,6 @@ function (a::GenDense)(x::AbstractVecOrMat)
     return a.σ.(a.forward(a, x))
 end
 
-function linear(a, x)
-    W, b, = a.weight, a.bias
-    # println("hi from linear")
-    return W*x .+ b
-end
-
 (a::GenDense)(x::AbstractArray) = 
     reshape(a(reshape(x, size(x,1), :)), :, size(x)[2:end]...)
 
