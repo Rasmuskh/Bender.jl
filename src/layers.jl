@@ -1,48 +1,33 @@
 """
-Generalized version of Flux's Dense layer. 
+Generalized version of Flux's Dense layer. The `forward` keyword allows you to choose the form of the forward mapping.
 
     GenDense(in=>out, σ=identity; 
-             ω = identity, ψ = *, init = glorot_uniform, 
-             bias=true, γ=Flux.Zeros()
+             init = glorot_uniform, 
+             bias=true, γ=Flux.Zeros(), forward=linear)
 
 Can also be initialized with an additional set of trainable weights 
 
     GenDense(in=>out, in_asym=>out_asym, σ = identity; 
-             ω = identity, ψ = *, init = glorot_uniform, 
-             bias=true, bias_asym=true, γ=Flux.Zeros())
-
-To implement Feedback alignment you need to specify the similarity function `ψ=matmul_asym_∂x`.
-```
-julia> using Flux, Bender
-julia> GenDense(20=>10, 10=>20, relu; ψ=matmul_asym_∂x)
-julia> (a::GenDense)(x::AbstractVecOrMat) = a.σ.(a.ψ(a.ω.(a.weight), x, a.weight_asym) .+ a.bias) # redefine forward pass to also take weight_asym as input
-GenDense(size(weight)=(10, 20), size(weight_asym)=(20, 10), σ=relu, ψ=matmul_asym_∂x)
-```
-To implement a layer with binary {-1,1} weights and neurons, which uses a deterministic 
-straight-through estimator in the backwards pass you need to specify an activation function
-for both the weights and neurons.
-```
-julia> using, Bender
-julia> GenDense(20=>10, sign_STE; ω=sign_STE)
-GenDense(size(weight)=(10, 20), σ=sign_STE, ω=sign_STE)
-```
+             init = glorot_uniform, 
+             bias=true, bias_asym=true, γ=Flux.Zeros(), forward=linear)
+             
+TODO: add examples.
 """
-    struct GenDense{F1, F2, F3, M1<:AbstractMatrix, M2, M3, B1, B2}
+struct GenDense{F1, F2, M1<:AbstractMatrix, M2, M3, B1, B2}
     weight::M1
     weight_asym::M2 
     bias::B1
     bias_asym::B2
-    γ::M3 # Additional parameter, which may be used e.g. for annealing custom activation functions. 
+    γ::M3 # Additional parameter, which may be used e.g. for annealing custom activation functions. Defaults to Flux.Zeros()
     σ::F1 # activation function
-    ω::F2 # weight activation function
-    ψ::F3 # correlation/similarity measure
-    function GenDense(weight::M1, weight_asym::M2, bias = true, bias_asym=true, γ = Flux.Zeros(), σ::F1 = identity, ω::F2 = identity, ψ::F3 = *) where {M1<:AbstractMatrix, M2, F1, F2, F3}
-        new{F1, F2, F3, M1, M2, typeof(γ), typeof(bias), typeof(bias_asym)}(weight, weight_asym, bias, bias_asym, γ, σ, ω, ψ)
+    forward::F2 # Forward pass function (without applying the activation function σ)
+    function GenDense(weight::M1, weight_asym::M2, bias = true, bias_asym=true, γ = Flux.Zeros(), σ::F1 = identity, forward::F2 = linear) where {M1<:AbstractMatrix, M2, F1, F2}
+        new{F1, F2, M1, M2, typeof(γ), typeof(bias), typeof(bias_asym)}(weight, weight_asym, bias, bias_asym, γ, σ, forward)
     end
 end
 
 function GenDense((in, out)::Pair{<:Integer, <:Integer}, σ = identity; 
-    ω = identity, ψ = *, init = glorot_uniform, bias=true, γ=Flux.Zeros())
+    init = glorot_uniform, bias=true, γ=Flux.Zeros(), forward=linear)
 
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
@@ -50,26 +35,30 @@ function GenDense((in, out)::Pair{<:Integer, <:Integer}, σ = identity;
     weight_asym = Flux.Zeros()
     bias_asym = Flux.Zeros()
 
-    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, ω, ψ)
+    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, forward)
 end
 
 function GenDense((in, out)::Pair{<:Integer, <:Integer}, 
     (in_asym, out_asym)::Pair{<:Integer, <:Integer}, σ = identity; 
-    ω = identity, ψ = *, init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros())
+    init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros(), forward)
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
     weight_asym = init(out_asym, in_asym)
     bias_asym = create_bias(weight_asym, bias_asym, out_asym)
 
-    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, ω, ψ)
+    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, forward)
 end
 
 @functor GenDense
 
 function (a::GenDense)(x::AbstractVecOrMat)
-    W, b, σ, ω, ψ = a.weight, a.bias, a.σ, a.ω, a.ψ
-    #= The similarity function ψ should compute a measure of similarity between rows of W and columns of X =#
-    return σ.(ψ(ω.(W), x) .+ b)
+    return a.σ.(a.forward(a, x))
+end
+
+function linear(a, x)
+    W, b, = a.weight, a.bias
+    # println("hi from linear")
+    return W*x .+ b
 end
 
 (a::GenDense)(x::AbstractArray) = 
@@ -79,14 +68,12 @@ function Base.show(io::IO, l::GenDense)
     print(io, "GenDense(size(weight)=", size(l.weight))
     l.weight_asym isa AbstractArray && print(io, ", size(weight_asym)=", size(l.weight_asym))
     l.σ == identity || print(io, ", σ=", l.σ)
-    l.ω == identity || print(io, ", ω=", l.ω)
-    l.ψ == (*) || print(io, ", ψ=", l.ψ)
+    l.forward == linear || print(io, ", forward=", l.forward)
     l.bias == Zeros() && print(io, ", bias=false")
     l.weight_asym isa AbstractArray && l.bias_asym == Zeros() && print(io, ", bias_asym=false")
     l.γ == Zeros() || print(io, ", size(γ)=", size(l.γ))
     print(io, ")")
 end
-
 """Generalized version of Flux's conv layer"""
 struct GenConv{N, M, F1, F2, F3, A1, A2, V1, V2, A3}
     σ::F1
