@@ -4,6 +4,7 @@ using Documenter
 
 Home = "Home" => "index.md"
 functionindex = "functionindex" => "functionindex.md"
+FAexample = "Example: Feedback Alignment" => "FA_notebook.jl.html"
 
 PAGES = [
     Home,
