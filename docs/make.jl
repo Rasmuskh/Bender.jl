@@ -9,6 +9,7 @@ FAexample = "Example: Feedback Alignment" => "FA_notebook.jl.html"
 PAGES = [
     Home,
     functionindex
+    FAexample
     ]
 
 makedocs(
