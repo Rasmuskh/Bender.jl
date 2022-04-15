@@ -6,7 +6,7 @@ using PlutoStaticHTML
 """
 Run all Pluto notebooks (".jl" files) in notebook directory and write output to Markdown files.
 """
-function build_notebooks()
+function build_tutorials()
     println("Building tutorials")
     dir = joinpath(pkgdir(Bender), "docs", "src", "notebooks")
     # Evaluate notebooks in the same process to avoid having to recompile from scratch each time.
@@ -19,7 +19,7 @@ function build_notebooks()
     return nothing
 end
 
-build_notebooks()
+build_tutorials()
 
 Home = "Home" => "index.md"
 functionindex = "functionindex" => "functionindex.md"
