@@ -12,7 +12,7 @@ Pkg.add(url="https://github.com/Rasmuskh/Bender.jl.git")
 
 # ╔═╡ fe0d1fc8-fef7-4507-8d3f-33570c4ce520
 begin
-	using Bender, Flux, MLDatasets, Statistics, CUDA
+	using Bender, Flux, MLDatasets, Statistics
 	using Flux: onehotbatch, onecold, logitcrossentropy, throttle
 	using Flux.Data: DataLoader
 	using Parameters: @with_kw

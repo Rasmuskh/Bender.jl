@@ -65,7 +65,7 @@ version = "0.1.1"
 
 [[deps.Bender]]
 deps = ["ChainRulesCore", "Flux", "NNlib", "Zygote"]
-git-tree-sha1 = "0c9b32ed8420ac0a5bf9374c77a107084f54ddd8"
+git-tree-sha1 = "0ab646354b3f6ac7bb048c7325e91bbca9f94b4a"
 repo-rev = "main"
 repo-url = "https://github.com/Rasmuskh/Bender.jl.git"
 uuid = "d932af0e-0638-411f-8110-81bfd6ac6059"
