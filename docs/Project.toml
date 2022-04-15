@@ -1,2 +1,8 @@
 [deps]
+Bender = "d932af0e-0638-411f-8110-81bfd6ac6059"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+MLDatasets = "eb30cadb-4394-5ae3-aed4-317e484a6458"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+PlutoStaticHTML = "359b1769-a58e-495b-9770-312e911026ad"
