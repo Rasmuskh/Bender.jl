@@ -19,7 +19,7 @@ function build_tutorials()
     return nothing
 end
 
-build_tutorials()
+# build_tutorials()
 
 Home = "Home" => "index.md"
 functionindex = "functionindex" => "functionindex.md"
