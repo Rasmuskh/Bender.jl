@@ -14,7 +14,7 @@ end
 
 # Hack to avoid zygote using forward mode differentiation instead of the above rrule.
 @adjoint function broadcasted(::typeof(sign_STE), x::Numeric)
-    _pullback(sign_ST, x)
+    _pullback(sign_STE, x)
 end
 
 """ 
