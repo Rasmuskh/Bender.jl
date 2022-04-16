@@ -3,5 +3,4 @@
 *.jl.mem
 /Manifest.toml
 /docs/build/*
-/docs/src/*_notebook.jl
 /src/notes.jl
