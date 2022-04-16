@@ -13,7 +13,7 @@ export sign_STE, hardtanh_AdaSTE
 include("similarity_functions.jl")
 export radialSim, radialSim_asym, matmul, matmul_asym_∂x, matmul_blocked_∂x, conv_asym_∂x
 include("forwardmappings.jl")
-export linear, linear_asym_∂x, radial, radial_asym_∂x
+export linear, linear_asym_∂x, radial, radial_asym_∂x, linear_binary_weights
 include("losses.jl")
 export direct_feedback_loss
 end
