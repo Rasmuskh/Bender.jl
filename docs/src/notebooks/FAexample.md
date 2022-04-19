@@ -1,11 +1,20 @@
 # Feedback Alignment
-## Handling dependencies
+Feedback alignment ([Lillicrap et al](https://arxiv.org/abs/1411.0247)) sometimes refered to as Random Backpropagation is an attempt at making neural network trainig more biologically plausible. Usually the backpropagation of error algorithm is used to train networks, but it relies on a symmetry between the weights used to make predicitons in the forward pass and the weights used for propagating error signals backwards in order to compute weight updates. Since synapses for the most part transmit signals in one direction it seems unlikely that exact one to one synaptic symmetry as required by backprop could somehow arise in biological brains. 
 
+For this reason Lillicrap et al proposed to transport errors backwards using a set of fixed random weight matrices. Surprisingly this works fairly well because the weights used in the forwards pass learn to approzimately align with the feedback weights.
+
+This page contains a short tutorial on how to train a model using feedback alignment. It is adapted from the Flux model zoo's MLP example. The following sections contain some boilerplate code related to data processing. You can expand them to show the details.
+
+## Handling dependencies
+```@raw html
+<details><summary>show details</summary>
 ```
+
+```julia
 using Pkg; Pkg.add(url="https://github.com/Rasmuskh/Bender.jl.git")
 ```
 
-```
+```julia
 begin
 	using Bender, Flux, MLDatasets
 	using Flux: onehotbatch, onecold, logitcrossentropy, throttle
@@ -15,8 +24,18 @@ begin
 end
 ```
 
-## Utilities
+```@raw html
+</details>
 ```
+
+## Utilities
+
+```@raw html
+<details>
+  <summary>show details</summary>
+```
+
+```julia
 @with_kw mutable struct Args
     η::Float64 = 0.0003     # learning rate
     batchsize::Int = 64     # batch size
@@ -25,7 +44,7 @@ end
 end
 ```
 
-```
+```julia
 function getdata(args)
     ENV["DATADEPS_ALWAYS_ACCEPT"] = "true"
 
@@ -48,9 +67,7 @@ function getdata(args)
 end
 ```
 
-
-
-```
+```julia
 function evaluate(data_loader, model)
     acc = 0
 	l = 0
@@ -62,9 +79,18 @@ function evaluate(data_loader, model)
     return acc/numbatches, l/numbatches
 end
 ```
+```@raw html
+</details>
+```
 
 ## Defining the training loop
+
+```@raw html
+<details>
+  <summary>show details</summary>
 ```
+
+```julia
 function train(; kws...)
     # Initializing Model parameters 
     args = Args(; kws...)
@@ -99,8 +125,15 @@ function train(; kws...)
 	return df
 end
 ```
-# Defining the model
+```@raw html
+</details>
 ```
+# Defining the model
+Feedback Alignment uses two sets of weights, one for making predictions and one for transporting error signals backwards, so we need to initialize the `GenDense` layer with an extra set of weights. We also need to specify the forward mapping we will use, which in this case is `linear_asym_∂x`. 
+
+For more details see the documentation and/or source code for the forward mapping `linear_asym_∂x`, which behaves as a regular fully connected layer in the forwards pass, but uses the second set of weights in the backwards pass. 
+
+```julia
 function build_model()
     m = Chain(GenDense(784=>128, 128=>784, relu; forward=linear_asym_∂x),
               GenDense(128=>64, 64=>128, relu; forward=linear_asym_∂x),
@@ -109,11 +142,12 @@ function build_model()
 end
 ```
 # Training the model
-```
+The network quickly learns to solve the problem fairly well even though we are using fixed random matrices to propagate errors backwards. Below we train the network for ten epochs. The train function stores the model's loss and accuracy on the train and test set in a DataFrame.
+
+```julia
 df = train(epochs=10); round.(df, digits=3)
 ```
-
-|    | loss_train | loss_test | acc_train | acc_test |
+|Epoch| loss_train | loss_test | acc_train | acc_test |
 |:--:|:----------:|:---------:|:---------:|:--------:|
 |  1 | 0.418      | 0.413     | 0.881     | 0.884    |
 |  2 | 0.317      | 0.318     | 0.909     | 0.91     |
@@ -125,3 +159,6 @@ df = train(epochs=10); round.(df, digits=3)
 |  8 | 0.138      | 0.156     | 0.96      | 0.955    |
 |  9 | 0.125      | 0.145     | 0.964     | 0.956    |
 | 10 | 0.113      | 0.136     | 0.967     | 0.959    |
+
+# References
+Timothy P. Lillicrap et al, 2014, Random feedback weights support learning in deep neural networks, [Link](https://arxiv.org/abs/1411.0247)
