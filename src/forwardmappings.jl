@@ -22,3 +22,8 @@ function linear_binary_weights(a, x)
     W, b, = a.weight, a.bias
     return sign_STE.(W)*x .+ b
 end
+
+function linear_stoc_binary_weights(a, x)
+    W, b, = a.weight, a.bias
+    return stoc_sign_STE.(W)*x .+ b
+end

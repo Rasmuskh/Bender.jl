@@ -9,7 +9,7 @@ using ChainRulesCore: NoTangent, @thunk
 include("layers.jl")
 export GenDense, GenConv
 include("activation_functions.jl")
-export sign_STE, stoc_sign_STE, hardtanh_AdaSTE
+export sign_STE, stoc_sign_STE, hardtanh_AdaSTE, hardσ
 include("similarity_functions.jl")
 export radialSim, radialSim_asym, matmul, matmul_asym_∂x, matmul_blocked_∂x, conv_asym_∂x
 include("forwardmappings.jl")

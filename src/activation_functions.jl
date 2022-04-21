@@ -30,7 +30,7 @@ References: https://arxiv.org/abs/1308.3432, https://arxiv.org/abs/1511.00363
 """
 function stoc_sign_STE(x)
     p = hardσ(x)
-    plus = p>=rand()
+    plus = p>=rand(typeof(x))
     nega = plus -1
     x_bin = plus + nega     
     return x_bin
