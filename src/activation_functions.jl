@@ -1,6 +1,6 @@
 """
 Deterministic straight-through estimator for the sign function.
-References: https://arxiv.org/abs/1308.3432, https://arxiv.org/abs/1511.00363
+Reference: https://arxiv.org/abs/1308.3432, https://arxiv.org/abs/1511.00363
 """
 sign_STE(x) = sign(x)
 
@@ -15,6 +15,38 @@ end
 # Hack to avoid zygote using forward mode differentiation instead of the above rrule.
 @adjoint function broadcasted(::typeof(sign_STE), x::Numeric)
     _pullback(sign_STE, x)
+end
+
+"""A piece-wise linear function. for x<-1 it has value 0. For -1<x<1 it has value x. For x>1 it has value 1. It is defined as:
+    
+    hardσ(x) = max(0, min(1, (x+1)/2))
+"""
+hardσ(x) = max(0, min(1, (x+1)/2))
+       
+"""
+A stochastic straight-through estimator version of the sign function.
+References: https://arxiv.org/abs/1308.3432, https://arxiv.org/abs/1511.00363
+
+"""
+function stoc_sign_STE(x)
+    p = hardσ(x)
+    plus = p>=rand()
+    nega = plus -1
+    x_bin = plus + nega     
+    return x_bin
+end
+
+function ChainRulesCore.rrule(::typeof(stoc_sign_STE), x::AbstractArray)
+    z = stoc_sign_STE.(x)
+    function pullback(Δy)
+        return NoTangent(), Δy
+    end
+    return z, pullback
+end
+
+# Hack to avoid zygote using forward mode differentiation instead of the above rrule.
+@adjoint function broadcasted(::typeof(stoc_sign_STE), x::Numeric)
+    _pullback(stoc_sign_STE, x)
 end
 
 """ 

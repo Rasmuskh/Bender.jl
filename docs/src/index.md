@@ -43,3 +43,7 @@ direct_feedback_loss
 ```@docs
 sign_STE
 ```
+
+```@docs
+stoc_sign_STE
+```
