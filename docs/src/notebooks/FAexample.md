@@ -1,9 +1,12 @@
 # Feedback Alignment
+
+This page contains a short tutorial on how to train a model using feedback alignment. It is loosely adapted from the Flux model zoo's MLP example.
+
 Feedback alignment ([Lillicrap et al](https://arxiv.org/abs/1411.0247)) sometimes refered to as Random Backpropagation is an attempt at making neural network trainig more biologically plausible. Usually the backpropagation of error algorithm is used to train networks, but it relies on a symmetry between the weights used to make predicitons in the forward pass and the weights used for propagating error signals backwards in order to compute weight updates. Since synapses for the most part transmit signals in one direction it seems unlikely that exact one to one synaptic symmetry as required by backprop could somehow arise in biological brains. 
 
 For this reason Lillicrap et al proposed to transport errors backwards using a set of fixed random weight matrices. Surprisingly this works fairly well because the weights used in the forwards pass learn to approzimately align with the feedback weights.
 
-This page contains a short tutorial on how to train a model using feedback alignment. It is adapted from the Flux model zoo's MLP example. The following sections contain some boilerplate code related to data processing. You can expand them to show the details.
+ The following sections contain some boilerplate code. You can expand them to show the details.
 
 ## Handling dependencies
 ```@raw html
