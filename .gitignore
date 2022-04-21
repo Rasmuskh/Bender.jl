@@ -1,6 +1,7 @@
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
+*.png
 /Manifest.toml
 /docs/build/*
-/src/notes.jl
+/docs/src/notebooks/*.jl
