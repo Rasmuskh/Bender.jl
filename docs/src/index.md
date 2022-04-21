@@ -47,3 +47,7 @@ sign_STE
 ```@docs
 stoc_sign_STE
 ```
+
+```@docs
+hardσ
+```
