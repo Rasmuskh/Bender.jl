@@ -40,7 +40,7 @@ end
 
 function GenDense((in, out)::Pair{<:Integer, <:Integer}, 
     (in_asym, out_asym)::Pair{<:Integer, <:Integer}, σ = identity; 
-    init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros(), forward)
+    init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros(), forward=linear)
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
     weight_asym = init(out_asym, in_asym)
@@ -69,64 +69,61 @@ function Base.show(io::IO, l::GenDense)
     print(io, ")")
 end
 """Generalized version of Flux's conv layer"""
-struct GenConv{N, M, F1, F2, F3, A1, A2, V1, V2, A3}
+struct GenConv{N, M, F1, F2, A1, A2, V, A3, A4}
     σ::F1
-    ω::F2
-    ψ::F3
+    forward::F2
     weight::A1
     weight_asym::A2
-    bias::V1
-    bias_asym::V2
-    γ::A3
+    bias::V
+    α::A3
+    β::A4
     stride::NTuple{N,Int}
     pad::NTuple{M,Int}
     dilation::NTuple{N,Int}
     groups::Int
 end
 
-function GenConv(weight::AbstractArray{T,N}, weight_asym, bias, bias_asym, σ = identity;
-	ω = identity, ψ=conv, stride = 1, pad = 0, dilation = 1, groups = 1, γ=Flux.Zeros()) where {T,N}
+function GenConv(weight::AbstractArray{T,N}, weight_asym, bias, σ = identity;
+                stride = 1, pad = 0, dilation = 1, groups = 1, α=Flux.Zeros(), β=Flux.Zeros(), forward=conv_linear) where {T,N}
 
 	stride = expand(Val(N-2), stride)
 	dilation = expand(Val(N-2), dilation)
 	pad = calc_padding(GenConv, pad, size(weight)[1:N-2], dilation, stride)
 
-	return GenConv(σ, ω, ψ, weight, weight_asym, bias, bias_asym, γ, stride, pad, dilation, groups)
+    bias = create_bias(weight, bias, size(weight, N))
+    
+	return GenConv(σ, forward, weight, weight_asym, bias, α, β, stride, pad, dilation, groups)
 end
 
 # initialization function for the case where weight_asym will not be used (is set to Flux.Zeros()).
 function GenConv(k::NTuple{N,Integer}, ch::Pair{<:Integer,<:Integer}, σ = identity;
-    ω=identity, ψ=conv, init = glorot_uniform, stride = 1, pad = 0, dilation = 1, groups = 1,
-	weight = convfilter(k, (ch[1] ÷ groups => ch[2]); init), 
-	weight_asym = Flux.Zeros(),
-	bias = true, γ=Flux.Zeros()) where N
+                init = glorot_uniform, stride = 1, pad = 0, dilation = 1, groups = 1,
+                bias = true, α=Flux.Zeros(), β=Flux.Zeros(),
+                forward=conv_linear) where N
+    
+    weight = convfilter(k, (ch[1] ÷ groups => ch[2]); init)
+    weight_asym = Flux.Zeros()
 
-    bias = create_bias(weight, bias, size(weight, N))
-    bias_asym = Flux.Zeros()
 
-    return GenConv(weight, weight_asym, bias, bias_asym, σ; ω, ψ, stride, pad, dilation, groups, γ)
+    return GenConv(weight, weight_asym, bias, σ; stride, pad, dilation, groups, α, β, forward)
 end
 
 # Initialization function for the case where weight asym will be used.
 function GenConv(k::NTuple{N,Integer}, ch::Pair{<:Integer,<:Integer}, k_asym::NTuple{N,Integer}, ch_asym::Pair{<:Integer,<:Integer}, σ = identity;
-    ω=identity, ψ=conv, init = glorot_uniform, stride = 1, pad = 0, dilation = 1, groups = 1,
-	weight = convfilter(k, (ch[1] ÷ groups => ch[2]); init), 
-	weight_asym = convfilter(k_asym, (ch_asym[1] ÷ groups => ch_asym[2]); init), 
-	bias = true, bias_asym=true, γ=Flux.Zeros()) where N
+    init = glorot_uniform, stride = 1, pad = 0, dilation = 1, groups = 1,
+	bias = true, α=Flux.Zeros(), β=Flux.Zeros(),
+    forward=conv_linear) where N
 
-	bias = create_bias(weight, bias, size(weight, N))
-	bias_asym = create_bias(weight_asym, bias_asym, size(weight_asym, N))
+    weight = convfilter(k, (ch[1] ÷ groups => ch[2]); init)
+	weight_asym = convfilter(k_asym, (ch_asym[1] ÷ groups => ch_asym[2]); init)
 
-    return GenConv(weight, weight_asym, bias, bias_asym, σ; ω, ψ, stride, pad, dilation, groups, γ)
+    return GenConv(weight, weight_asym, bias, σ; stride, pad, dilation, groups, α, β, forward)
 end
 
 @functor GenConv
 
-# defining the default forward pass
 function (c::GenConv)(x::AbstractArray)
-	weight, σ, ω, ψ, b = c.weight, c.σ, c.ω, c.ψ, reshape(c.bias, ntuple(_ -> 1, length(c.stride))..., :, 1)
-	cdims = DenseConvDims(x, weight; stride = c.stride, padding = c.pad, dilation = c.dilation, groups = c.groups)
-	σ.(ψ(x, ω.(weight), cdims) .+ b)
+	return c.σ.(c.forward(c, x))
 end
 
 # Defining the show method
@@ -136,13 +133,12 @@ function Base.show(io::IO, l::GenConv)
     l.weight_asym isa AbstractArray && print(io, ", weight_asym: ", size(l.weight_asym)[1:ndims(l.weight_asym)-2])
 	l.weight_asym isa AbstractArray && print(io, ", ", size(l.weight, ndims(l.weight)-1), " => ", size(l.weight, ndims(l.weight)))
 	l.σ == identity || print(io, ", ", l.σ)
-	l.ω == identity || print(io, ", ", l.ω)
-	l.ψ == conv || print(io, ", ", l.ψ)
+    l.forward == conv_linear || print(io, ", forward=", l.forward)
 	all(==(0), l.pad) || print(io, ", pad=", _maybetuple_string(l.pad))
 	all(==(1), l.stride) || print(io, ", stride=", _maybetuple_string(l.stride))
 	all(==(1), l.dilation) || print(io, ", dilation=", _maybetuple_string(l.dilation))
 	l.bias == Zeros() && print(io, ", bias=false")
-    l.weight_asym isa AbstractArray && l.bias_asym == Zeros() && print(io, ", bias_asym=false")
-    l.γ == Zeros() || print(io, ", size(γ)=", size(l.γ))
+    l.α == Zeros() || print(io, ", size(α)=", size(l.α))
+    l.β == Zeros() || print(io, ", size(β)=", size(l.β))
 	print(io, ")")
 end
