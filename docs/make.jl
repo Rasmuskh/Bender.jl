@@ -3,7 +3,7 @@ using Bender
 using Documenter
 
 Home = "Home" => "index.md"
-functionindex = "functionindex" => "functionindex.md"
+functionindex = "Function index" => "functionindex.md"
 FAexample = "Example: Feedback Alignment" => "notebooks/FAexample.md"
 BiNNexample = "Example: Binary Neural Network" => "notebooks/Binaryexample.md"
 PAGES = [
