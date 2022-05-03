@@ -1,7 +1,7 @@
 """
 Compute negative squared euclidean distance D between the rows of matrix W and the columns of matrix X.
 Denoting the rows of W by index i and the columns of X by index j the elements of the output matrix is given by:
-Dᵢⱼ = -||Wᵢ﹕ - X﹕ⱼ||² = 2Wᵢ﹕X﹕,j - ||Wᵢ﹕||^2 - ||X﹕ⱼ||².
+Dᵢⱼ = -||Wᵢ﹕ - X﹕ⱼ||² = 2Wᵢ﹕X﹕,ⱼ - ||Wᵢ﹕||^2 - ||X﹕ⱼ||².
 """
 function radialSim(W, X)
     x2 = sum(abs2, X, dims=1) # sum the elements of each column
@@ -27,14 +27,9 @@ end
 function ChainRulesCore.rrule(::typeof(L2columnSum_asym), W::AbstractMatrix, B::AbstractMatrix)
     s = sum(abs2, W, dims=2)
     function sum_pullback(ΔΩ)
-        println("B: ", size(B'))
-        println("ΔΩ: ", size(ΔΩ))
         ∂W = @thunk(2*B' .* ΔΩ)
-
-        println("∂W: ", size(unthunk(∂W)))
         return (NoTangent(), ∂W, NoTangent())
     end
-    println("s: ", size(s))
     return s, sum_pullback
 end
 
