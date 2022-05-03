@@ -3,50 +3,48 @@ Generalized version of Flux's Dense layer. The `forward` keyword allows you to c
 
     GenDense(in=>out, σ=identity; 
              init = glorot_uniform, 
-             bias=true, γ=Flux.Zeros(), forward=linear)
+             bias=true, α=Flux.Zeros(), β=Flux.Zeros(), forward=linear)
 
 Can also be initialized with an additional set of trainable weights 
 
     GenDense(in=>out, in_asym=>out_asym, σ = identity; 
              init = glorot_uniform, 
-             bias=true, bias_asym=true, γ=Flux.Zeros(), forward=linear)
+             bias=true, α=Flux.Zeros(), β=Flux.Zeros(), forward=linear)
              
 TODO: add examples.
 """
-struct GenDense{F1, F2, M1<:AbstractMatrix, M2, M3, B1, B2}
+struct GenDense{F1, F2, M1<:AbstractMatrix, M2, M3, M4, B}
     weight::M1
     weight_asym::M2 
-    bias::B1
-    bias_asym::B2
-    γ::M3 # Additional parameter, which may be used e.g. for annealing custom activation functions. Defaults to Flux.Zeros()
+    bias::B
+    α::M3 # Additional parameter, which may be used e.g. for annealing custom activation functions. Defaults to Flux.Zeros()
+    β::M4 # Additional parameter, which may be used e.g. for annealing custom activation functions. Defaults to Flux.Zeros()
     σ::F1 # activation function
     forward::F2 # Forward pass function (without applying the activation function σ)
-    function GenDense(weight::M1, weight_asym::M2, bias = true, bias_asym=true, γ = Flux.Zeros(), σ::F1 = identity, forward::F2 = linear) where {M1<:AbstractMatrix, M2, F1, F2}
-        new{F1, F2, M1, M2, typeof(γ), typeof(bias), typeof(bias_asym)}(weight, weight_asym, bias, bias_asym, γ, σ, forward)
+    function GenDense(weight::M1, weight_asym::M2, bias = true, α = Flux.Zeros(), β = Flux.Zeros(), σ::F1 = identity, forward::F2 = linear) where {M1<:AbstractMatrix, M2, F1, F2}
+        new{F1, F2, M1, M2, typeof(α), typeof(β), typeof(bias)}(weight, weight_asym, bias, α, β, σ, forward)
     end
 end
 
 function GenDense((in, out)::Pair{<:Integer, <:Integer}, σ = identity; 
-    init = glorot_uniform, bias=true, γ=Flux.Zeros(), forward=linear)
+    init = glorot_uniform, bias=true, α=Flux.Zeros(), β=Flux.Zeros(), forward=linear)
 
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
     # No dims specified for weights_asym, so return Flux.Zeros(). See documentation on Flux.Zeros for details
     weight_asym = Flux.Zeros()
-    bias_asym = Flux.Zeros()
 
-    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, forward)
+    return GenDense(weight, weight_asym, bias, α, β, σ, forward)
 end
 
 function GenDense((in, out)::Pair{<:Integer, <:Integer}, 
     (in_asym, out_asym)::Pair{<:Integer, <:Integer}, σ = identity; 
-    init = glorot_uniform, bias=true, bias_asym=true, γ=Flux.Zeros(), forward=linear)
+    init = glorot_uniform, bias=true, α=Flux.Zeros(), β=Flux.Zeros(), forward=linear)
     weight = init(out, in)
     bias = create_bias(weight, bias, out)
     weight_asym = init(out_asym, in_asym)
-    bias_asym = create_bias(weight_asym, bias_asym, out_asym)
 
-    return GenDense(weight, weight_asym, bias, bias_asym, γ, σ, forward)
+    return GenDense(weight, weight_asym, bias, α, β, σ, forward)
 end
 
 @functor GenDense
@@ -64,8 +62,8 @@ function Base.show(io::IO, l::GenDense)
     l.σ == identity || print(io, ", σ=", l.σ)
     l.forward == linear || print(io, ", forward=", l.forward)
     l.bias == Zeros() && print(io, ", bias=false")
-    l.weight_asym isa AbstractArray && l.bias_asym == Zeros() && print(io, ", bias_asym=false")
-    l.γ == Zeros() || print(io, ", size(γ)=", size(l.γ))
+    l.α == Zeros() || print(io, ", size(α)=", size(l.α))
+    l.β == Zeros() || print(io, ", size(β)=", size(l.β))
     print(io, ")")
 end
 """Generalized version of Flux's conv layer"""
