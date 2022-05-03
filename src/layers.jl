@@ -11,7 +11,8 @@ Can also be initialized with an additional set of trainable weights
              init = glorot_uniform, 
              bias=true, α=Flux.Zeros(), β=Flux.Zeros(), forward=linear)
              
-TODO: add examples.
+The layer has additinal keyword arguments α and β, which default to Flux.Zeros. These are useful if you
+need an extra set of weights for for your forward pass (if you for example wish to anneal an activation function).
 """
 struct GenDense{F1, F2, M1<:AbstractMatrix, M2, M3, M4, B}
     weight::M1
@@ -66,7 +67,20 @@ function Base.show(io::IO, l::GenDense)
     l.β == Zeros() || print(io, ", size(β)=", size(l.β))
     print(io, ")")
 end
-"""Generalized version of Flux's conv layer"""
+
+"""
+Generalized version of Flux's conv layer. 
+The `forward` keyword allows you to choose the form of the forward mapping and defaults to linear.
+This layer can be initialized with either one or two set of filters 
+(a second set of filters is useful for feedback alignment experiments).
+
+    GenConv((k, k), ch_in=>ch_out, σ=identity; forward=linear)
+
+    GenConv((k, k), ch_in=>ch_out_(k_asym, k_asym), ch_in_asym=>ch_out_asym, σ=identity; forward=linear)
+
+The layer has additinal keyword arguments α and β, which default to Flux.Zeros. These are useful if you
+need an extra set of weights for for your forward pass (if you for example wish to anneal an activation function).
+"""
 struct GenConv{N, M, F1, F2, A1, A2, V, A3, A4}
     σ::F1
     forward::F2
