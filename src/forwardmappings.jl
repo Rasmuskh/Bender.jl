@@ -11,11 +11,22 @@ end
 """
 behaves identical to `linear` in the forward pass, but relies on matmul_asym_∂x, 
 which causes errors to be backpropagated using a set of auxiliary weights'in
-the backwards pass. See `linear_asym_∂x`.
+the backwards pass. See `matmul_asym_∂x`.
 """
 function linear_asym_∂x(a, x)
     W, b, B = a.weight, a.bias, a.weight_asym
     return matmul_asym_∂x(W, x, B) .+ b
+end
+
+"""
+behaves identical to `linear` in the forward pass, but relies on matmul_blocked_∂x, 
+which prevents error signal from passing through this layer to earlier layers. 
+This is useful in direct feedback alignment experiments where you want to pipe errors
+directly from the output loss to individual layers. See `matmul_blocked_∂x`.
+"""
+function linear_blocked_∂x(a, x)
+    W, b, B = a.weight, a.bias, a.weight_asym
+    return matmul_blocked_∂x(W, x, B) .+ b
 end
 
 """

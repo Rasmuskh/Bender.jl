@@ -20,6 +20,10 @@ linear_asym_∂x
 ```
 
 ```@docs
+linear_blocked_∂x
+```
+
+```@docs
 radial
 ```
 
