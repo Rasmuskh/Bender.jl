@@ -25,8 +25,8 @@ This is useful in direct feedback alignment experiments where you want to pipe e
 directly from the output loss to individual layers. See `matmul_blocked_∂x`.
 """
 function linear_blocked_∂x(a, x)
-    W, b, B = a.weight, a.bias, a.weight_asym
-    return matmul_blocked_∂x(W, x, B) .+ b
+    W, b = a.weight, a.bias
+    return matmul_blocked_∂x(W, x) .+ b
 end
 
 """
