@@ -50,7 +50,7 @@ end
 Regular forward pass (matmul and bias addition) with a binary activation
 function applied to the weights.
 """
-function linear_binary_Ws(a, x)
+function linear_binary_weights(a, x)
     W, b, = a.W, a.bias
     return sign_STE.(W)*x .+ b
 end
@@ -59,7 +59,7 @@ end
 Regular forward pass (matmul and bias addition) with a binary stochastic
 activation function applied to the weights.
 """
-function linear_stoc_binary_Ws(a, x)
+function linear_stoc_binary_weights(a, x)
     W, b, = a.W, a.bias
     return stoc_sign_STE.(W)*x .+ b
 end
